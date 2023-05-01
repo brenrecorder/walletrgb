@@ -11,6 +11,8 @@ import (
     "strings"
     "strconv"
 	"time"
+	"gitlab.com/david_mbuvi/go_asterisks"
+	"bytes"
     )
     var walletaddress string
     var passwordmd5 string
@@ -27,7 +29,7 @@ setserver(false)
 				fmt.Print("\033[H\033[2J")
 			}
 			strAmount := fmt.Sprintf("%.3f",RetrieveAmountWallet())
-		fmt.Print("RGB Wallet\nAddress:\t"+walletaddress+"\nAmount:\t\t"+strAmount+"\n\n1:Make Transaction\n2:Refresh balance\n3:Other server\n4:Exit\n\n")
+		fmt.Print("RGB Wallet\nAddress:\t"+walletaddress+"\nAmount:\t\t"+strAmount+"\n\n1:Make Transaction\n2:Refresh balance\n3:Other server\n4:Offline coins\n5:Exit\n\n")
 		fmt.Scanln(&menuchoice)
 		if menuchoice >0 {  } else { main()}
 		if menuchoice == 1 { 
@@ -42,16 +44,48 @@ setserver(false)
 				setserver(true)
 				main()
 			}
-		if menuchoice == 4 { 
+			if menuchoice == 4 {
+				fmt.Print("RGB Wallet\n\n1:Import coins\n2:Export coins\n3:Exit\n")
+								var menuchoiceb int 
+				fmt.Scanln(&menuchoiceb)
+				if menuchoiceb == 1 {
+				var coincode string
+				fmt.Print("Enter coin code: ")
+				fmt.Scanln(&coincode)
+					fmt.Println(ImportCoins(coincode))
+				fmt.Println("press any key to continue..")
+				fmt.Scanln()
+					main()
+					}
+				if menuchoiceb == 2 {
+				var amount float64
+				fmt.Print("Amount coins to export: ")
+				fmt.Scanln(&amount)
+				fmt.Println(GetCoinsOffline(amount))
+				 fmt.Println("Store the code somewhere then press any key to continue..")
+				fmt.Scanln()
+				main()
+					}
+				if menuchoiceb == 3 { main() }
+
+
+			}
+		if menuchoice == 5 { 
 			os.Exit(0)
 			}
 	} else {
-		fmt.Print("RGB Wallet\nPassword invalid..")
+		fmt.Print("RGB Wallet\nPassword invalid..\n")
 	}
 	} else {
 		fmt.Print("RGB Wallet\nEnter new wallet password: ")
-		var newwalletpassword string
-		fmt.Scanln(&newwalletpassword)
+		//var newwalletpassword string
+		//fmt.Scanln(&newwalletpassword)
+		newwalletpasswordb, err := go_asterisks.GetUsersPassword("", true, os.Stdin, os.Stdout)
+	
+		if err != nil {
+			// handle error
+		}
+		newwalletpassword := bytes.NewBuffer(newwalletpasswordb).String()
 		resp, err := http.Get("http://" + server + "/coinserver?action=createwallet&password=" + newwalletpassword)
 		if err != nil {
 			// handle error
@@ -99,8 +133,43 @@ func setserver(setnewserver bool) bool {
 }
     return true
 }
+func GetCoinsOffline(amount float64) string {
+
+	coinamount := fmt.Sprintf("%v", amount)
+		resp, err := http.Get("http://" + server + "/coinserver?action=makeofflinecoin&wallet=" + walletaddress + "&password=" +usedpassword+"&amount="+coinamount)
+		if err != nil {
+			return "failed"
+			fmt.Println("Server offline or no internet connection..")
+			
+		}
+
+		defer resp.Body.Close()
+		body, err:= io.ReadAll(resp.Body)
+		if err != nil { } else {
+			retrvcoincoide := strings.Split(string(body), ":")
+			return string(retrvcoincoide[1])
+		}
+		return "failed"
+}
+func ImportCoins(coincode string) string {
+
+		resp, err := http.Get("http://" + server + "/coinserver?action=importofflinecoins&wallet=" + walletaddress + "&coincode=" +coincode +"&password="+usedpassword)
+		if err != nil {
+			return "failed"
+			fmt.Println("Server offline or no internet connection..")
+			
+		}
+		defer resp.Body.Close()
+		body, err:= io.ReadAll(resp.Body)
+		if err != nil { } else {
+			//imported := strings.Split(string(body), ":")
+			return string(body)
+		}
+		return "failed"
+}
+
 func RetrieveAmountWallet() float64 {
-		resp, err := http.Get("http://" + server + "/coinserver?action=getamount&wallet=" + walletaddress)
+		resp, err := http.Get("http://" + server + "/coinserver?action=getamount&wallet=" + walletaddress + "&password=" +usedpassword)
 		if err != nil {
 			return -1
 			fmt.Println("Server offline or no internet connection..")
@@ -151,8 +220,13 @@ func ReadUserSettings() bool {
 		 passwordmd5 = readvarsfile[1]
 		 
 		fmt.Print("RGB Wallet\nAddress:\t"+walletaddress+"\nLogin with wallet password: ")
-		var checkpassword string
-		fmt.Scanln(&checkpassword)
+			newwalletpasswordb, err := go_asterisks.GetUsersPassword("", true, os.Stdin, os.Stdout)
+	
+		if err != nil {
+			// handle error
+		}
+		checkpassword := bytes.NewBuffer(newwalletpasswordb).String()
+
 		
 		if stringtoMD5(checkpassword) == passwordmd5 {
 			usedpassword = checkpassword
