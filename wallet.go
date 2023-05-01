@@ -13,12 +13,18 @@ import (
 	"time"
 	"gitlab.com/david_mbuvi/go_asterisks"
 	"bytes"
+	//"flag"
     )
     var walletaddress string
     var passwordmd5 string
     var usedpassword string 
+    
+    var flagpassword string
+    
    var server string = "86.84.201.181:95"
     func main() {
+		
+
 		var menuchoice int 
 setserver(false)
 		if isFileExisting("mywallet.db") {
@@ -29,6 +35,7 @@ setserver(false)
 				fmt.Print("\033[H\033[2J")
 			}
 			strAmount := fmt.Sprintf("%.3f",RetrieveAmountWallet())
+
 		fmt.Print("RGB Wallet\nAddress:\t"+walletaddress+"\nAmount:\t\t"+strAmount+"\n\n1:Make Transaction\n2:Refresh balance\n3:Other server\n4:Offline coins\n5:Exit\n\n")
 		fmt.Scanln(&menuchoice)
 		if menuchoice >0 {  } else { main()}
@@ -45,7 +52,8 @@ setserver(false)
 				main()
 			}
 			if menuchoice == 4 {
-				fmt.Print("RGB Wallet\n\n1:Import coins\n2:Export coins\n3:Exit\n")
+				fmt.Print("\033[H\033[2J")
+				fmt.Print("RGB Wallet\n1:Import coins\n2:Export coins\n3:Exit to menu\n\n")
 								var menuchoiceb int 
 				fmt.Scanln(&menuchoiceb)
 				if menuchoiceb == 1 {
@@ -61,7 +69,10 @@ setserver(false)
 				var amount float64
 				fmt.Print("Amount coins to export: ")
 				fmt.Scanln(&amount)
-				fmt.Println(GetCoinsOffline(amount))
+				
+				coinamountexp := fmt.Sprintf("%v", amount)
+				fmt.Print("\nCoins: \t" + coinamountexp + "\n")
+				fmt.Println("Code: \t" +GetCoinsOffline(amount))
 				 fmt.Println("Store the code somewhere then press any key to continue..")
 				fmt.Scanln()
 				main()
@@ -116,12 +127,14 @@ func setserver(setnewserver bool) bool {
 	fmt.Print("RGB Wallet\nServer: "+server+"\nEnter new server address: ")
 	var setserver string
 	fmt.Scanln(&setserver)
+	
+
+    if len(setserver) >0 {
 	f, err := os.Create("server.cnf")
     if err != nil {
         fmt.Println(err)
         return false
     }
-    if len(setserver) >0 {
     _, err = f.WriteString(setserver)
     if err != nil {
         fmt.Println(err)
@@ -215,18 +228,22 @@ func ReadUserSettings() bool {
     if err != nil {
         fmt.Print(err)
     } else {
+		var checkpassword string
 		 readvarsfile := strings.Split(string(b), ":")
 		 walletaddress = readvarsfile[0]
 		 passwordmd5 = readvarsfile[1]
 		 
+		 if len(flagpassword) <1 {
 		fmt.Print("RGB Wallet\nAddress:\t"+walletaddress+"\nLogin with wallet password: ")
 			newwalletpasswordb, err := go_asterisks.GetUsersPassword("", true, os.Stdin, os.Stdout)
 	
 		if err != nil {
 			// handle error
 		}
-		checkpassword := bytes.NewBuffer(newwalletpasswordb).String()
-
+		checkpassword = bytes.NewBuffer(newwalletpasswordb).String()
+	} else {
+		checkpassword = flagpassword
+	}
 		
 		if stringtoMD5(checkpassword) == passwordmd5 {
 			usedpassword = checkpassword
