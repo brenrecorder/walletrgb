@@ -14,30 +14,42 @@ import (
 	"gitlab.com/david_mbuvi/go_asterisks"
 	"bytes"
 	//"flag"
+	"github.com/nexidian/gocliselect"
     )
     var walletaddress string
     var passwordmd5 string
     var usedpassword string 
     
     var flagpassword string
-    
+    var blockchainchecked bool = false
    var server string = "86.84.201.181:95"
     func main() {
 		
+menu := gocliselect.NewMenu("Main menu")
+menu.AddItem("Make transaction", "1")
+menu.AddItem("Refresh balance", "2")
+menu.AddItem("Other server", "3")
+menu.AddItem("Offline coins", "4")
+menu.AddItem("Exit", "5")
 
 		var menuchoice int 
 setserver(false)
 		if isFileExisting("mywallet.db") {
 		if ReadUserSettings() {
 			fmt.Print("\033[H\033[2J")
-			if (RetrieveAmountWallet() <0) { 
+			if (RetrieveAmountWallet() <0) {
+				fmt.Print("Wallet not found..\n\n") 
 				setserver(true)
 				fmt.Print("\033[H\033[2J")
 			}
 			strAmount := fmt.Sprintf("%.3f",RetrieveAmountWallet())
 
-		fmt.Print("RGB Wallet\nAddress:\t"+walletaddress+"\nAmount:\t\t"+strAmount+"\n\n1:Make Transaction\n2:Refresh balance\n3:Other server\n4:Offline coins\n5:Exit\n\n")
-		fmt.Scanln(&menuchoice)
+		//fmt.Print("RGB Wallet\nAddress:\t"+walletaddress+"\nAmount:\t\t"+strAmount+"\n\n1:Make Transaction\n2:Refresh balance\n3:Other server\n4:Offline coins\n5:Exit\n\n")
+		//fmt.Scanln(&menuchoice)
+		var blockchainvalid string = "invalid"
+		if (blockchainchecked)  {blockchainvalid = "valid"} 
+		fmt.Print("RGB Wallet\nBlockchain:\t"+blockchainvalid+"\n\nAddress:\t"+walletaddress+"\nAmount:\t\t"+strAmount+"\n\n")
+		menuchoice, _ = strconv.Atoi(menu.Display())
 		if menuchoice >0 {  } else { main()}
 		if menuchoice == 1 { 
 			MakeTransaction() 
@@ -53,9 +65,15 @@ setserver(false)
 			}
 			if menuchoice == 4 {
 				fmt.Print("\033[H\033[2J")
-				fmt.Print("RGB Wallet\n1:Import coins\n2:Export coins\n3:Exit to menu\n\n")
-								var menuchoiceb int 
-				fmt.Scanln(&menuchoiceb)
+				fmt.Print("RGB Wallet\n\nAddress:\t"+walletaddress+"\nAmount:\t\t"+strAmount+"\n\n")
+						
+				menuofflinecoins := gocliselect.NewMenu("Offline coins")
+				menuofflinecoins.AddItem("Import coins", "1")
+				menuofflinecoins.AddItem("Export coins", "2")
+				menuofflinecoins.AddItem("Exit", "3")
+				var menuchoiceb int
+				menuchoiceb, _ = strconv.Atoi(menuofflinecoins.Display())
+				
 				if menuchoiceb == 1 {
 				var coincode string
 				fmt.Print("Enter coin code: ")
@@ -124,7 +142,7 @@ func setserver(setnewserver bool) bool {
 					return true
 				}
 		}
-	fmt.Print("RGB Wallet\nServer: "+server+"\nEnter new server address: ")
+	fmt.Print("\nRGB Wallet\nServer: "+server+"\nEnter new server address: ")
 	var setserver string
 	fmt.Scanln(&setserver)
 	
@@ -146,6 +164,7 @@ func setserver(setnewserver bool) bool {
 }
     return true
 }
+
 func GetCoinsOffline(amount float64) string {
 
 	coinamount := fmt.Sprintf("%v", amount)
@@ -232,9 +251,11 @@ func ReadUserSettings() bool {
 		 readvarsfile := strings.Split(string(b), ":")
 		 walletaddress = readvarsfile[0]
 		 passwordmd5 = readvarsfile[1]
-		 
+		 fmt.Print("RGB Wallet\n\n")
 		 if len(flagpassword) <1 {
-		fmt.Print("RGB Wallet\nAddress:\t"+walletaddress+"\nLogin with wallet password: ")
+	
+		fmt.Print("\nAddress:\t"+walletaddress+"\n\nLogin with wallet password\nPassword: ")
+
 			newwalletpasswordb, err := go_asterisks.GetUsersPassword("", true, os.Stdin, os.Stdout)
 	
 		if err != nil {
@@ -247,6 +268,7 @@ func ReadUserSettings() bool {
 		
 		if stringtoMD5(checkpassword) == passwordmd5 {
 			usedpassword = checkpassword
+					 if CheckBlockChainValid() {blockchainchecked = true} else {blockchainchecked = false}
 			return true
 		}
 	}
@@ -267,6 +289,26 @@ func CreateWalletFile(address string, password string) bool {
 		fmt.Println("Wallet: " + address + " password: " + password + " created")
 		return true
 	}
+}
+
+func CheckBlockChainValid() bool {
+		resp, err := http.Get("http://" + server + "/coinserver?action=blockchain")
+		if err != nil {
+			
+		}
+	defer resp.Body.Close()
+	body, err:= io.ReadAll(resp.Body)
+		if err != nil {
+			return false
+		} else {
+			response := strings.Split(string(body), ":")
+			if response[1] == "true" { 
+				return true
+			} else {
+				return false
+			}
+		}
+		return false
 }
 func isFileExisting(filename string) bool {
    info, err := os.Stat(filename)
