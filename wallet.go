@@ -28,9 +28,11 @@ import (
 menu := gocliselect.NewMenu("Main menu")
 menu.AddItem("Make transaction", "1")
 menu.AddItem("Refresh balance", "2")
-menu.AddItem("Other server", "3")
-menu.AddItem("Offline coins", "4")
-menu.AddItem("Exit", "5")
+menu.AddItem("History", "3")
+menu.AddItem("Receive", "4")
+menu.AddItem("Other server", "5")
+menu.AddItem("Offline coins", "6")
+menu.AddItem("Exit", "7")
 
 		var menuchoice int 
 setserver(false)
@@ -59,11 +61,21 @@ setserver(false)
 		if menuchoice == 2 { 
 			main()
 			}
-			if menuchoice == 3 { 
-				setserver(true)
+			if menuchoice == 3 {
+				TransActionHistory(walletaddress)
+				fmt.Println("\npress any key to exit..")
+				fmt.Scanln()
 				main()
 			}
 			if menuchoice == 4 {
+			ReceiveCoins(walletaddress)
+			main()
+			}
+			if menuchoice == 5 { 
+				setserver(true)
+				main()
+			}
+			if menuchoice == 6 {
 				fmt.Print("\033[H\033[2J")
 				fmt.Print("RGB Wallet\n\nAddress:\t"+walletaddress+"\nAmount:\t\t"+strAmount+"\n\n")
 						
@@ -99,7 +111,7 @@ setserver(false)
 
 
 			}
-		if menuchoice == 5 { 
+		if menuchoice == 7 { 
 			os.Exit(0)
 			}
 	} else {
@@ -164,6 +176,90 @@ func setserver(setnewserver bool) bool {
 }
     return true
 }
+func ReceiveCoins(wallet string) {
+var receiveAmount float64
+fmt.Print("Enter payment amount: ")
+fmt.Scanln(&receiveAmount)
+var boolinhistory bool = false
+var boolreceived bool = false
+fmt.Println("Awaiting payment..")
+
+		resp, err := http.Get("http://" + server + "/coinserver?action=transactionhistory")
+		if err != nil {
+			fmt.Println("Server offline or no internet connection..")	
+		}
+		defer resp.Body.Close()
+		body, err:= io.ReadAll(resp.Body)
+		oldtransactions := strings.Split(string(body), "\n")
+		var oldTransActionsBlockChain = map[int]string{}
+		for i, block := range oldtransactions {
+		histblocksplit := strings.Split(string(block), ":")
+			oldTransActionsBlockChain[i] = histblocksplit[0]
+		}
+		
+for boolreceived == false {
+		resp, err := http.Get("http://" + server + "/coinserver?action=transactionhistory")
+		if err != nil {
+			
+			fmt.Println("Server offline or no internet connection..")
+			
+		}
+//bchash:amount:from:to
+		defer resp.Body.Close()
+		body, err:= io.ReadAll(resp.Body)
+		if err != nil { fmt.Println("Error") } else {
+		alltransaction := strings.Split(string(body), "\n")
+		
+		//fmt.Println("\nTransaction history\nFrom\t\t\tTo\t\tAmount\n")
+		for _, block := range alltransaction {
+		splitblock := strings.Split(block, ":")
+		boolinhistory = false
+		for _, blockold := range oldTransActionsBlockChain {
+			if len(splitblock) > 2 && blockold == splitblock[0] { boolinhistory = true }
+		}
+			//fmt.Println(block)
+			
+			if len(splitblock) > 2 && boolinhistory == false  {
+			strAmounttoReceive := fmt.Sprintf("%.3f",receiveAmount)
+			if (splitblock[2] == wallet || splitblock[3] == wallet) && splitblock[1] == strAmounttoReceive  {
+			fmt.Println("Payment done, " + strAmounttoReceive + " From: " + splitblock[2])
+			boolreceived = true
+			//fmt.Println(splitblock[2] + "\t" + splitblock[3] + "\t\t" + splitblock[1] + "")
+			}
+			}
+		}
+
+		}
+time.Sleep(3 * time.Second)
+}
+
+}
+func TransActionHistory(wallet string) {
+		resp, err := http.Get("http://" + server + "/coinserver?action=transactionhistory")
+		if err != nil {
+			
+			fmt.Println("Server offline or no internet connection..")
+			
+		}
+//bchash:amount:from:to
+		defer resp.Body.Close()
+		body, err:= io.ReadAll(resp.Body)
+		if err != nil { fmt.Println("Error") } else {
+		alltransaction := strings.Split(string(body), "\n")
+		
+		fmt.Println("\nTransaction history\nFrom\t\t\tTo\t\tAmount\n")
+		for _, block := range alltransaction {
+			//fmt.Println(block)
+			splitblock := strings.Split(block, ":")
+			if len(splitblock) > 2 {
+			if splitblock[2] == wallet || splitblock[3] == wallet {
+			fmt.Println(splitblock[2] + "\t" + splitblock[3] + "\t\t" + splitblock[1] + "")
+			}
+			}
+		}
+
+		}
+}
 
 func GetCoinsOffline(amount float64) string {
 
@@ -222,6 +318,7 @@ func RetrieveAmountWallet() float64 {
 func MakeTransaction() {
 	var adrTo string
 	var amount float64
+	
 	fmt.Print("\nNew Transaction\nAddress: ")
 	fmt.Scanln(&adrTo)
 	fmt.Print("Amount: ")
