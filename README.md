@@ -16,4 +16,6 @@ miner included
 usage:
 miner.exe -server 127.0.0.1:8080 to start mining blockchain
 
-<img src="https://github.com/brenrecorder/walletrgb/blob/main/screenshotwallet.png?raw=true"></img>
+<img src="https://github.com/brenrecorder/walletrgb/blob/main/screenwallet.png?raw=true"></img><br>
+<img src="https://github.com/brenrecorder/walletrgb/blob/main/screenserver.png?raw=true"></img><br>
+<img src="https://github.com/brenrecorder/walletrgb/blob/main/screenminer.png?raw=true"></img><br>
