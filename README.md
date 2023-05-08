@@ -9,12 +9,12 @@ go mod tidy<br>
 go build wallet.go
 edit server.cnf or set -server 127.0.0.1:8080
 
-server included (windows exe file)
+server included (windows exe file)<br>
 usage: coinserver -password X -difficulty X 
 
-miner included
-Please mine 5 minutes or more before using
-usage:
+miner included<br>
+Please mine 5 minutes or more before using<br>
+usage:<br>
 miner.exe -server 127.0.0.1:8080 to start mining blockchain
 
 <img src="https://github.com/brenrecorder/walletrgb/blob/main/screenwallet.png?raw=true"></img>
