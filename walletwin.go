@@ -157,9 +157,11 @@ fmt.Print("Enter payment amount: ")
 fmt.Scanln(&receiveAmount)
 var boolinhistory bool = false
 var boolreceived bool = false
-fmt.Println("Awaiting payment..")
 
-		resp, err := http.Get("http://" + server + "/coinserver?action=transactionhistory")
+if receiveAmount >0 {
+fmt.Println("Awaiting payment..")
+} else { return }
+		resp, err := http.Get("http://" + server + "/coinserver?action=transactionhistory&filter=" + wallet)
 		if err != nil {
 			fmt.Println("Server offline or no internet connection..")	
 		}
