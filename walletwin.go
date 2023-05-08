@@ -16,6 +16,8 @@ import (
 	//"flag"
 	//"github.com/nexidian/gocliselect"
 	"github.com/Baozisoftware/qrcode-terminal-go"
+	"github.com/rodaine/table"
+	 "github.com/fatih/color"
     )
     var walletaddress string
     var passwordmd5 string
@@ -42,9 +44,10 @@ setserver(false)
 			strAmount := fmt.Sprintf("%.3f",RetrieveAmountWallet())
 
 
-		var blockchainvalid string = "invalid"
-		if (blockchainchecked)  {blockchainvalid = "valid"} 
-		fmt.Print("\nRGB Wallet\nBlockchain:\t"+blockchainvalid+"\n\n")
+		//var blockchainvalid string = "invalid"
+		//if (blockchainchecked)  {blockchainvalid = "valid"} 
+		fmt.Print("\nRGB Wallet\n\n")
+		//fmt.Print("\nRGB Wallet\nBlockchain:\t"+blockchainvalid+"\n\n")
 
 		fmt.Print("Address:\t"+walletaddress+"\nAmount:\t\t"+strAmount+"\n\n1:Make Transaction\n2:Refresh balance\n3:History\n4:Receive\n5:Other server\n6:Offline coins\n7:Exit\n\n")
 		fmt.Scanln(&menuchoice)
@@ -220,17 +223,23 @@ func TransActionHistory(wallet string) {
 		if err != nil { fmt.Println("Error") } else {
 		alltransaction := strings.Split(string(body), "\n")
 		
-		fmt.Println("\nTransaction history\nFrom\t\t\tTo\t\tAmount\n")
+		fmt.Println("\nTransactionhistory\n")
+		//fmt.Println("\nTransaction history\nFrom\t\t\tTo\t\t\tAmount\n")
+		  headerFmt := color.New(color.FgGreen).SprintfFunc()
+			columnFmt := color.New(color.FgYellow).SprintfFunc()
+		tbl := table.New("From", "To", "Amount", "")
+		tbl.WithHeaderFormatter(headerFmt).WithFirstColumnFormatter(columnFmt)
 		for _, block := range alltransaction {
 			//fmt.Println(block)
 			splitblock := strings.Split(block, ":")
 			if len(splitblock) > 2 {
 			if splitblock[2] == wallet || splitblock[3] == wallet {
-			fmt.Println(splitblock[2] + "\t" + splitblock[3] + "\t\t" + splitblock[1] + "")
+			tbl.AddRow(splitblock[2], splitblock[3], splitblock[1], "")
+			//fmt.Println(splitblock[2] + "\t" + splitblock[3] + "\t\t" + splitblock[1] + "")
 			}
 			}
 		}
-
+		tbl.Print()
 		}
 }
 func setserver(setnewserver bool) bool {
