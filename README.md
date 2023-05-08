@@ -17,6 +17,6 @@ Please mine 5 minutes or more before using<br>
 usage:<br>
 miner.exe -server 127.0.0.1:8080 to start mining blockchain
 
-<img src="https://github.com/brenrecorder/walletrgb/blob/main/screenwallet.png?raw=true"></img>
-<img src="https://github.com/brenrecorder/walletrgb/blob/main/screenserver.png?raw=true"></img>
-<img src="https://github.com/brenrecorder/walletrgb/blob/main/screenminer.png?raw=true"></img>
+<img src="https://github.com/brenrecorder/walletrgb/blob/main/pictures/screenwallet.png?raw=true"></img>
+<img src="https://github.com/brenrecorder/walletrgb/blob/main/pictures/screenserver.png?raw=true"></img>
+<img src="https://github.com/brenrecorder/walletrgb/blob/main/pictures/screenminer.png?raw=true"></img>
