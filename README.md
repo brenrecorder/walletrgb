@@ -13,6 +13,7 @@ server included (windows exe file)
 usage: coinserver -password X -difficulty X 
 
 miner included
+Please mine 5 minutes or more before using
 usage:
 miner.exe -server 127.0.0.1:8080 to start mining blockchain
 
