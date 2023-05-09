@@ -7,7 +7,7 @@ Compile (windows,linux,termux):<Br>
 go mod init wallet<br>
 go mod tidy<br>
 go build wallet.go
-edit server.cnf or set -server 127.0.0.1:8080
+edit server.cnf 127.0.0.1:8080
 
 server included (windows exe file)<br>
 usage: coinserver -password X -difficulty X 
